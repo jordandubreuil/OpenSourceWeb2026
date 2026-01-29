@@ -2,15 +2,16 @@ const express = require("express");
 const router = express.Router();
 const Game = require("../models/Game");
 const { model } = require("mongoose");
+const requireAuth = require("../middleware/requireAuth");
 
 //Read Route
-router.get("/", async (req,res)=>{
+router.get("/", requireAuth, async (req,res)=>{
     const games = await Game.find().sort({createdAt:-1}).lean();
     res.render("games/index", {games});
 });
 
 //Create: adds new games
-router.post("/games", async (req,res)=>{
+router.post("/games", requireAuth, async (req,res)=>{
     try{
         const payload = {
             title:req.body.title,
@@ -33,7 +34,7 @@ router.post("/games", async (req,res)=>{
 });
 
 //Update route
-router.put("/games/:id", async (req,res)=>{
+router.put("/games/:id", requireAuth, async (req,res)=>{
     try{
         const payload = {
             ...req.body,
@@ -53,7 +54,7 @@ router.put("/games/:id", async (req,res)=>{
 });
 
 //Edit Page
-router.get("/games/:id/edit", async (req,res)=>{
+router.get("/games/:id/edit", requireAuth, async (req,res)=>{
     const game = await Game.findById(req.params.id).lean();
     console.log(game);
     if(!game){
@@ -63,7 +64,7 @@ router.get("/games/:id/edit", async (req,res)=>{
 });
 
 //Delete
-router.delete("/games/:id", async (req,res)=>{
+router.delete("/games/:id", requireAuth, async (req,res)=>{
     await Game.findByIdAndDelete(req.params.id);
     res.redirect("/");
 });

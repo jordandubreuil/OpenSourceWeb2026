@@ -6,7 +6,8 @@ const GameSchema = new mongoose.Schema(
         platform:{type:String, required:true, trim:true},
         genre:{type:String, required:true, trim:true},
         rating:{type:Number, min:0, max:10, required:true},
-        releaseYear:{type:Number, min:1970, max:2100}
+        releaseYear:{type:Number, min:1970, max:2100},
+        owner:{type:mongoose.Schema.Types.ObjectId, ref:"User", required:false}
     },
     {timestamps:true}
 );

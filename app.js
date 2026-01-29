@@ -1,3 +1,4 @@
+
 const { timeStamp, error } = require("console");
 const express = require("express");
 const mongoose = require("mongoose");
@@ -10,7 +11,10 @@ const PORT = process.env.PORT || 3000;
 const MONGO_URI = process.env.MONGO_URI;
 const gamesRouter = require("./routes/games");
 const {engine} = require("express-handlebars");
-
+const session = require("express-session");
+const MongoStore = require("connect-mongo").default;
+const passport = require("passport");
+//import MongoStore from 'connect-mongo'
 //Setup the templating engine
 app.engine("hbs", engine({extname:".hbs"}));
 app.set("view engine", "hbs");
@@ -27,8 +31,8 @@ app.use(express.json());
 app.use(express.urlencoded({extended:true}));
 app.use(methodOverride("_method"));
 
-//setup router
-app.use("/", gamesRouter);
+// //setup router
+// app.use("/", gamesRouter);
 
 async function connectToMongo() {
     try{
@@ -41,6 +45,46 @@ async function connectToMongo() {
     }
     
 }
+
+//Setup Passport Authentication
+app.use(
+    session(
+        {
+            secret:process.env.SESSION_SECRET,
+            resave:false,
+            saveUninitialized:false,
+            // store: MongoStore.create(
+            //     {
+            //         mongoURL:process.env.MONGO_URI,
+            //         dbName:"Games"
+            //     }
+            // ),
+            cookie:{httpOnly:true},
+        }
+    )
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.use((req,res,next)=>{
+    res.locals.user = req.user;
+    next();
+});
+
+require("./auth/passport");
+
+//Sets up authentication router
+const authRouter = require("./routes/auth");
+app.use("/", authRouter);
+
+//setup router
+app.use("/", gamesRouter);
+
+//Catch all for unauthorized routes
+app.use((req,res)=>{
+    res.status(404).redirect("/login");
+});
 
 //Basic get route
 // app.get("/", (req,res)=>{
