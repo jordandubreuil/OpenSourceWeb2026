@@ -12,7 +12,7 @@ const MONGO_URI = process.env.MONGO_URI;
 const gamesRouter = require("./routes/games");
 const {engine} = require("express-handlebars");
 const session = require("express-session");
-const MongoStore = require("connect-mongo").default;
+const MongoStore = require("connect-mongo");
 const passport = require("passport");
 //import MongoStore from 'connect-mongo'
 //Setup the templating engine
@@ -53,12 +53,12 @@ app.use(
             secret:process.env.SESSION_SECRET,
             resave:false,
             saveUninitialized:false,
-            // store: MongoStore.create(
-            //     {
-            //         mongoURL:process.env.MONGO_URI,
-            //         dbName:"Games"
-            //     }
-            // ),
+            store: MongoStore.create(
+                {
+                    mongoUrl:process.env.MONGO_URI,
+                    dbName:"Games"
+                }
+            ),
             cookie:{httpOnly:true},
         }
     )
@@ -81,10 +81,7 @@ app.use("/", authRouter);
 //setup router
 app.use("/", gamesRouter);
 
-//Catch all for unauthorized routes
-app.use((req,res)=>{
-    res.status(404).redirect("/login");
-});
+
 
 //Basic get route
 // app.get("/", (req,res)=>{
@@ -148,4 +145,9 @@ connectToMongo().then(()=>{
     app.listen(PORT, ()=>{
         console.log(`Server is running on port ${PORT}`);
     });
+});
+
+//Catch all for unauthorized routes
+app.use((req,res)=>{
+    res.status(404).redirect("/login");
 });
